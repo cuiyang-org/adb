@@ -4,7 +4,6 @@ import org.cuiyang.adb.exception.CommandException;
 import org.cuiyang.adb.exception.DeviceException;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * 设备.
@@ -77,11 +76,11 @@ public interface Device {
      * 执行shell命令.
      * @param command shell 命令
      * @param args 命令参数
-     * @return 获取执行结果输入流
+     * @return shell执行结果
      * @throws IOException 和adb server连接异常
      * @throws DeviceException 设备异常
      * @throws CommandException 命令异常
      */
-    InputStream shell(String command, String... args) throws IOException, DeviceException, CommandException;
+    ShellResponse shell(String command, String... args) throws IOException, DeviceException, CommandException;
 
 }

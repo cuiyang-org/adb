@@ -4,7 +4,6 @@ import org.cuiyang.adb.exception.CommandException;
 import org.cuiyang.adb.exception.DeviceException;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * Device 基类.
@@ -69,11 +68,11 @@ public abstract class AbstractDevice implements Device {
     }
 
     @Override
-    public InputStream shell(String command, String... args) throws IOException, DeviceException, CommandException {
+    public ShellResponse shell(String command, String... args) throws IOException, DeviceException, CommandException {
         Transport transport = getTransport();
         StringBuilder shellLine = buildCmdLine(command, args);
         transport.send("shell:" + shellLine.toString());
-        return transport.getInputStream();
+        return new ShellResponse(transport);
     }
 
     /**

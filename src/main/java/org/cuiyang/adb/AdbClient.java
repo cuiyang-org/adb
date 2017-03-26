@@ -3,7 +3,6 @@ package org.cuiyang.adb;
 import org.cuiyang.adb.exception.CommandException;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -31,16 +30,6 @@ public class AdbClient implements TransportFactory {
         this.port = getDefaultPort();
     }
 
-    public AdbClient(String host) {
-        this.host = host;
-        this.port = getDefaultPort();
-    }
-
-    public AdbClient(int port) {
-        this.host = DEFAULT_HOST;
-        this.port = port;
-    }
-
     public AdbClient(String host, int port) {
         this.host = host;
         this.port = port;
@@ -48,7 +37,7 @@ public class AdbClient implements TransportFactory {
 
     @Override
     public Transport getTransport() throws IOException {
-        return new Transport(new Socket(host, port));
+        return new Transport(host, port);
     }
 
     /**
@@ -65,6 +54,19 @@ public class AdbClient implements TransportFactory {
             }
         }
         return DEFAULT_PORT;
+    }
+
+    /**
+     * 获取adb版本
+     * @return adb版本
+     * @throws IOException 和adb server连接异常
+     * @throws CommandException 命令异常
+     */
+    public String getVersion() throws IOException, CommandException {
+        try(Transport transport = getTransport()) {
+            transport.send("host:version");
+            return transport.read();
+        }
     }
 
     /**

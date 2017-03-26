@@ -1,14 +1,9 @@
 package org.cuiyang.adb;
 
 import org.cuiyang.adb.exception.CommandException;
-import org.cuiyang.adb.util.IOUtils;
 
-import java.io.Closeable;
-import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.nio.charset.Charset;
@@ -20,37 +15,10 @@ import java.nio.charset.Charset;
  * @author cuiyang
  * @since 2017/3/23
  */
-public class Transport implements Closeable {
+public class Transport extends Socket {
 
-    /** 输入流 */
-    private final InputStream inputStream;
-    /** 输出流 */
-    private final OutputStream outputStream;
-
-    public Transport(InputStream inputStream, OutputStream outputStream) {
-        this.inputStream = inputStream;
-        this.outputStream = outputStream;
-    }
-
-    public Transport(Socket socket) throws IOException {
-        inputStream = socket.getInputStream();
-        outputStream = socket.getOutputStream();
-    }
-
-    /**
-     * 获取输入流
-     * @return 输入流
-     */
-    public InputStream getInputStream() {
-        return inputStream;
-    }
-
-    /**
-     * 获取输出流
-     * @return 输出流
-     */
-    public OutputStream getOutputStream() {
-        return outputStream;
+    public Transport(String host, int port) throws IOException {
+        super(host, port);
     }
 
     /**
@@ -60,7 +28,7 @@ public class Transport implements Closeable {
      * @throws CommandException adb命令执行失败
      */
     public void send(String command) throws IOException, CommandException {
-        OutputStreamWriter writer = new OutputStreamWriter(outputStream);
+        OutputStreamWriter writer = new OutputStreamWriter(getOutputStream());
         writer.write(getHexLength(command));
         writer.write(command);
         writer.flush();
@@ -95,7 +63,7 @@ public class Transport implements Closeable {
      * @throws IOException 和adb server连接异常
      */
     public String read(int length) throws IOException {
-        DataInput reader = new DataInputStream(inputStream);
+        DataInputStream reader = new DataInputStream(getInputStream());
         byte[] buffer = new byte[length];
         reader.readFully(buffer);
         return new String(buffer, Charset.forName("UTF-8"));
@@ -110,15 +78,6 @@ public class Transport implements Closeable {
         String encodedLength = read(4);
         int length = Integer.parseInt(encodedLength, 16);
         return read(length);
-    }
-
-    /**
-     * 关闭
-     */
-    @Override
-    public void close() {
-        IOUtils.closeQuietly(inputStream);
-        IOUtils.closeQuietly(outputStream);
     }
 
 }
