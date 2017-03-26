@@ -1,6 +1,7 @@
 package org.cuiyang.adb;
 
 import org.cuiyang.adb.exception.CommandException;
+import org.cuiyang.adb.util.IOUtils;
 
 import java.io.Closeable;
 import java.io.DataInput;
@@ -116,18 +117,8 @@ public class Transport implements Closeable {
      */
     @Override
     public void close() {
-        try {
-            if (inputStream != null) {
-                inputStream.close();
-            }
-        } catch (IOException ignore) {
-        }
-        try {
-            if (outputStream != null) {
-                outputStream.close();
-            }
-        } catch (IOException ignore) {
-        }
+        IOUtils.closeQuietly(inputStream);
+        IOUtils.closeQuietly(outputStream);
     }
 
 }

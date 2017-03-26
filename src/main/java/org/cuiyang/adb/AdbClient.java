@@ -6,6 +6,7 @@ import org.cuiyang.adb.exception.DeviceException;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -87,6 +88,9 @@ public class AdbClient implements TransportFactory {
      * @throws CommandException adb命令host:devices异常
      */
     private List<Device> parseDevices(String response) throws CommandException {
+        if (response == null || "".equals(response)) {
+            return Collections.emptyList();
+        }
         List<Device> devices = new ArrayList<>();
         String[] lines = response.split("\n");
         for (String line : lines) {

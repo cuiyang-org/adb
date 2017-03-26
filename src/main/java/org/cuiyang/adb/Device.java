@@ -3,7 +3,6 @@ package org.cuiyang.adb;
 import org.cuiyang.adb.exception.CommandException;
 import org.cuiyang.adb.exception.DeviceException;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -120,7 +119,7 @@ public class Device {
                 transport.send("host:get-state");
             }
             String result = transport.read();
-            return State.valueOf(result);
+            return State.valueOf(result.toUpperCase());
         } catch (CommandException e) {
             throw new DeviceException(e);
         }
@@ -139,7 +138,7 @@ public class Device {
         Transport transport = getTransport();
         StringBuilder shellLine = buildCmdLine(command, args);
         transport.send("shell:" + shellLine.toString());
-        return new AdbFilterInputStream(new BufferedInputStream(transport.getInputStream()));
+        return transport.getInputStream();
     }
 
     /**
