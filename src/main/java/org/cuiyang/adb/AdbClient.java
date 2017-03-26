@@ -1,7 +1,6 @@
 package org.cuiyang.adb;
 
 import org.cuiyang.adb.exception.CommandException;
-import org.cuiyang.adb.exception.DeviceException;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -96,7 +95,7 @@ public class AdbClient implements TransportFactory {
         for (String line : lines) {
             String[] parts = line.split("\t");
             if (parts.length == 2) {
-                devices.add(new Device(this, parts[0]));
+                devices.add(new SerialNoDevice(this, parts[0]));
             } else {
                 throw new CommandException("adb命令host:devices异常");
             }
@@ -105,39 +104,27 @@ public class AdbClient implements TransportFactory {
     }
 
     /**
-     * 获取usb设备或者模拟器
+     * 通过usb连接或通过tcp连接的设备
      * @return 设备
-     * @throws IOException 和adb server连接异常
-     * @throws DeviceException 可能有超过一个设备或模拟器
      */
-    public Device getAnyDevice() throws IOException, DeviceException {
-        Device device = new Device(this, Device.TransportType.ANY);
-        device.getSerial();
-        return device;
+    public Device getAnyDevice() {
+        return new OnlyDevice(this, Device.Type.ANY);
     }
 
     /**
-     * 获取usb设备
+     * 获取通过usb连接的设备
      * @return 设备
-     * @throws IOException 和adb server连接异常
-     * @throws DeviceException 可能有超过一个设备或模拟器
      */
-    public Device getUsbDevice() throws IOException, DeviceException {
-        Device device = new Device(this, Device.TransportType.USB);
-        device.getSerial();
-        return device;
+    public Device getUsbDevice() {
+        return new OnlyDevice(this, Device.Type.USB);
     }
 
     /**
-     * 获取tcp方式连接模拟器
+     * 获取通过tcp连接的设备
      * @return 设备
-     * @throws IOException 和adb server连接异常
-     * @throws DeviceException 可能有超过一个设备或模拟器
      */
-    public Device getLocalDevice() throws IOException, DeviceException {
-        Device device = new Device(this, Device.TransportType.LOCAL);
-        device.getSerial();
-        return device;
+    public Device getLocalDevice() {
+        return new OnlyDevice(this, Device.Type.LOCAL);
     }
 
 }

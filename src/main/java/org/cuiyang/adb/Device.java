@@ -12,22 +12,25 @@ import java.io.InputStream;
  * @author cuiyang
  * @since 2017/3/22
  */
-public class Device {
+public interface Device {
 
     /**
-     * 手机状态
+     * 设备状态
      */
-    public enum State {
+    enum State {
+        /** 没有连接设备 */
         UNKNOWN,
+        /** 连接出现异常，设备无响应 */
         OFFLINE,
+        /** 设备正常连接 */
         DEVICE,
         BOOTLOADER
     }
 
     /**
-     * 传输类型
+     * 设备类型
      */
-    public enum TransportType {
+    enum Type {
         /** 连接usb上的设备，如果usb上有不止一个设备，会失败 */
         USB("host:transport-usb"),
         /** 通过tcp方式连接模拟器，如果有多个模拟器在运行，会失败 */
@@ -39,7 +42,7 @@ public class Device {
 
         private String command;
 
-        TransportType(String command) {
+        Type(String command) {
             this.command = command;
         }
 
@@ -48,82 +51,27 @@ public class Device {
         }
     }
 
-    /** 序列号 */
-    private String serial;
-    /** Transport 工厂 */
-    private TransportFactory factory;
-    /** 传输类型 */
-    private TransportType type;
-
-    public Device(TransportFactory factory, String serial) {
-        this.serial = serial;
-        this.factory = factory;
-        this.type = TransportType.SERIAL_NO;
-    }
-
-    public Device(TransportFactory factory, TransportType type) {
-        this.factory = factory;
-        this.type = type;
-    }
-
     /**
-     * 获取Transport.
-     * @throws IOException 和adb server连接异常
-     * @throws DeviceException 设备异常
-     */
-    private Transport getTransport() throws IOException, DeviceException {
-        Transport transport = factory.getTransport();
-        try {
-            if (TransportType.SERIAL_NO == type) {
-                transport.send(type.getCommand() + serial);
-            } else {
-                transport.send(type.getCommand());
-            }
-        } catch (CommandException e) {
-            throw new DeviceException(e);
-        }
-        return transport;
-    }
-
-    /**
-     * 获取该设备序列号
+     * 获取该设备序列号.
      * @return 序列号
      * @throws IOException 和adb server连接异常
      * @throws DeviceException 设备异常
      */
-    public String getSerial() throws IOException, DeviceException {
-        if (TransportType.SERIAL_NO == type) {
-            return serial;
-        } else {
-            try(Transport transport = factory.getTransport()) {
-                transport.send("host:get-serialno");
-                serial = transport.read();
-                return serial;
-            } catch (CommandException e) {
-                throw new DeviceException(e);
-            }
-        }
-    }
+    String getSerialNo() throws IOException, DeviceException;
 
     /**
-     * 获取该设备状态
+     * 获取该设备状态.
      * @return 设备状态
      * @throws IOException 和adb server连接异常
      * @throws DeviceException 设备异常
      */
-    public State getState() throws IOException, DeviceException {
-        try(Transport transport = factory.getTransport()) {
-            if (TransportType.SERIAL_NO == type) {
-                transport.send("host-serial:" + serial + ":get-state");
-            } else {
-                transport.send("host:get-state");
-            }
-            String result = transport.read();
-            return State.valueOf(result.toUpperCase());
-        } catch (CommandException e) {
-            throw new DeviceException(e);
-        }
-    }
+    State getState() throws IOException, DeviceException;
+
+    /**
+     * 获取设备类型
+     * @return 设备类型
+     */
+    Type getType();
 
     /**
      * 执行shell命令.
@@ -132,35 +80,8 @@ public class Device {
      * @return 获取执行结果输入流
      * @throws IOException 和adb server连接异常
      * @throws DeviceException 设备异常
-     * @throws CommandException 命令执行失败
+     * @throws CommandException 命令异常
      */
-    public InputStream shell(String command, String... args) throws IOException, DeviceException, CommandException {
-        Transport transport = getTransport();
-        StringBuilder shellLine = buildCmdLine(command, args);
-        transport.send("shell:" + shellLine.toString());
-        return transport.getInputStream();
-    }
-
-    /**
-     * 构建命令.
-     */
-    private StringBuilder buildCmdLine(String command, String... args) {
-        StringBuilder shellLine = new StringBuilder(command);
-        for (String arg : args) {
-            shellLine.append(" ");
-            shellLine.append(arg);
-        }
-        return shellLine;
-    }
-
-    @Override
-    public String toString() {
-        String serial = "unknown";
-        try {
-            serial = getSerial();
-        } catch (IOException | DeviceException ignore) {
-        }
-        return "The device's serial number is " + serial;
-    }
+    InputStream shell(String command, String... args) throws IOException, DeviceException, CommandException;
 
 }

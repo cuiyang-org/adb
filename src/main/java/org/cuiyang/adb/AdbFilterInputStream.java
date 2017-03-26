@@ -6,7 +6,8 @@ import java.io.InputStream;
 
 /**
  * adb 过滤流.
- * <p>执行adb shell会将\n转换\r\n, 因此需要用将\r\n转换为\n
+ * <p>在api level 24以下,
+ * 执行adb shell会将\n转换\r\n, 因此需要用将\r\n转换为\n
  *
  * @author cuiyang
  * @since 2017/3/24

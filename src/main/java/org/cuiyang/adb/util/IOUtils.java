@@ -4,7 +4,8 @@ import java.io.Closeable;
 import java.io.IOException;
 
 /**
- * IOUtils.
+ * IO 工具类.
+ * <p>from commons-io
  *
  * @author cuiyang
  * @since 2017/3/26
