@@ -1,4 +1,4 @@
-package org.cuiyang.adb.exception;
+package org.cuiyang.adb;
 
 /**
  * adb 异常.

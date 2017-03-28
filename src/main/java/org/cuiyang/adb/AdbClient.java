@@ -1,7 +1,5 @@
 package org.cuiyang.adb;
 
-import org.cuiyang.adb.exception.CommandException;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,9 +58,9 @@ public class AdbClient implements TransportFactory {
      * 获取adb版本
      * @return adb版本
      * @throws IOException 和adb server连接异常
-     * @throws CommandException 命令异常
+     * @throws AdbException 获取版本失败
      */
-    public String getVersion() throws IOException, CommandException {
+    public String getVersion() throws IOException, AdbException {
         try(Transport transport = getTransport()) {
             transport.send("host:version");
             return transport.read();
@@ -73,9 +71,9 @@ public class AdbClient implements TransportFactory {
      * 获取设备列表
      * @return 设备列表
      * @throws IOException 和adb server连接异常
-     * @throws CommandException adb命令执行失败
+     * @throws AdbException 获取设备列表失败
      */
-    public List<Device> getDevices() throws IOException, CommandException {
+    public List<Device> getDevices() throws IOException, AdbException {
         Transport transport = getTransport();
         transport.send("host:devices");
         String response = transport.read();
@@ -86,9 +84,9 @@ public class AdbClient implements TransportFactory {
     /**
      * 解析设备列表
      * @param response 执行adb命令host:devices返回的结果
-     * @throws CommandException adb命令host:devices异常
+     * @throws AdbException adb命令host:devices异常
      */
-    private List<Device> parseDevices(String response) throws CommandException {
+    private List<Device> parseDevices(String response) throws AdbException {
         if (response == null || "".equals(response)) {
             return Collections.emptyList();
         }
@@ -99,7 +97,7 @@ public class AdbClient implements TransportFactory {
             if (parts.length == 2) {
                 devices.add(new SerialNoDevice(this, parts[0]));
             } else {
-                throw new CommandException("adb命令host:devices异常");
+                throw new AdbException("adb命令host:devices异常");
             }
         }
         return devices;

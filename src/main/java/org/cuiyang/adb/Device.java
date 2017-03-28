@@ -1,8 +1,5 @@
 package org.cuiyang.adb;
 
-import org.cuiyang.adb.exception.CommandException;
-import org.cuiyang.adb.exception.DeviceException;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,17 +54,17 @@ public interface Device {
      * 获取该设备序列号.
      * @return 序列号
      * @throws IOException 和adb server连接异常
-     * @throws DeviceException 设备异常
+     * @throws AdbException 获取设备序列号失败
      */
-    String getSerialNo() throws IOException, DeviceException;
+    String getSerialNo() throws IOException, AdbException;
 
     /**
      * 获取该设备状态.
      * @return 设备状态
      * @throws IOException 和adb server连接异常
-     * @throws DeviceException 设备异常
+     * @throws AdbException 获取设备状态失败
      */
-    State getState() throws IOException, DeviceException;
+    State getState() throws IOException, AdbException;
 
     /**
      * 获取设备类型
@@ -81,10 +78,9 @@ public interface Device {
      * @param args 命令参数
      * @return shell执行结果
      * @throws IOException 和adb server连接异常
-     * @throws DeviceException 设备异常
-     * @throws CommandException 命令异常
+     * @throws AdbException 执行shell命令失败
      */
-    ShellResponse shell(String command, String... args) throws IOException, DeviceException, CommandException;
+    ShellResponse shell(String command, String... args) throws IOException, AdbException;
 
     /**
      * 推送文件到设备
@@ -93,39 +89,35 @@ public interface Device {
      * @param lastModified 修改时间
      * @param mode 文件模式
      * @throws IOException 和adb server连接异常
-     * @throws DeviceException 设备异常
-     * @throws CommandException 命令异常
+     * @throws AdbException 推送文件失败
      */
-    void push(InputStream local, String remote, long lastModified, int mode) throws IOException, DeviceException, CommandException;
+    void push(InputStream local, String remote, long lastModified, int mode) throws IOException, AdbException;
 
     /**
      * 推送文件到设备
      * @param local 本地文件
      * @param remote 远程路径
      * @throws IOException 和adb server连接异常
-     * @throws DeviceException 设备异常
-     * @throws CommandException 命令异常
+     * @throws AdbException 推送文件失败
      */
-    void push(File local, String remote) throws CommandException, DeviceException, IOException;
+    void push(File local, String remote) throws IOException, AdbException;
 
     /**
      * 从设备拉取文件到本地
      * @param remote 远程文件路径
      * @param local 本地文件输出流
      * @throws IOException 和adb server连接异常
-     * @throws DeviceException 设备异常
-     * @throws CommandException 命令异常
+     * @throws AdbException 拉取文件失败
      */
-    void pull(String remote, OutputStream local) throws IOException, DeviceException, CommandException;
+    void pull(String remote, OutputStream local) throws IOException, AdbException;
 
     /**
      * 从设备拉取文件到本地
      * @param remote 远程文件路径
      * @param local 本地文件
      * @throws IOException 和adb server连接异常
-     * @throws DeviceException 设备异常
-     * @throws CommandException 命令异常
+     * @throws AdbException 拉取文件失败
      */
-    void pull(String remote, File local) throws IOException, DeviceException, CommandException;
+    void pull(String remote, File local) throws IOException, AdbException;
 
 }

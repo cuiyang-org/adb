@@ -1,7 +1,5 @@
 package org.cuiyang.adb;
 
-import org.cuiyang.adb.exception.DeviceException;
-
 import java.io.IOException;
 
 /**
@@ -26,7 +24,7 @@ public class SerialNoDevice extends AbstractDevice {
     }
 
     @Override
-    public String getSerialNo() throws IOException, DeviceException {
+    public String getSerialNo() throws IOException, AdbException {
         return serialNo;
     }
 

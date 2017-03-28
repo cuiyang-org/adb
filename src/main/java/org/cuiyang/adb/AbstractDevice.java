@@ -1,8 +1,5 @@
 package org.cuiyang.adb;
 
-import org.cuiyang.adb.exception.CommandException;
-import org.cuiyang.adb.exception.DeviceException;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -30,37 +27,42 @@ public abstract class AbstractDevice implements Device {
     /**
      * 获取Transport.
      * @throws IOException 和adb server连接异常
-     * @throws DeviceException 设备异常
+     * @throws AdbException 设备异常
      */
-    protected Transport getTransport() throws IOException, DeviceException {
-        Transport transport = factory.getTransport();
+    protected Transport getTransport() throws IOException, AdbException {
+        Transport transport = null;
         try {
+            transport = factory.getTransport();
             if (Type.SERIAL_NO == getType()) {
                 transport.send(getType().getCommand() + getSerialNo());
             } else {
                 transport.send(getType().getCommand());
             }
-        } catch (CommandException e) {
-            throw new DeviceException(e);
+            return transport;
+        } catch (Exception e) {
+            try {
+                if (transport != null) {
+                    transport.close();
+                }
+            } catch (Exception ignore) {
+            }
+            throw e;
         }
-        return transport;
     }
 
     @Override
-    public String getSerialNo() throws IOException, DeviceException {
+    public String getSerialNo() throws IOException, AdbException {
         if (Type.SERIAL_NO == getType()) {
-            throw new DeviceException("请重写getSerialNo()方法");
+            throw new AdbException("请重写getSerialNo()方法");
         }
         try(Transport transport = factory.getTransport()) {
             transport.send("host:get-serialno");
             return transport.read();
-        } catch (CommandException e) {
-            throw new DeviceException(e);
         }
     }
 
     @Override
-    public State getState() throws IOException, DeviceException {
+    public State getState() throws IOException, AdbException {
         try(Transport transport = factory.getTransport()) {
             if (Type.SERIAL_NO == getType()) {
                 transport.send("host-serial:" + getSerialNo() + ":get-state");
@@ -69,13 +71,11 @@ public abstract class AbstractDevice implements Device {
             }
             String result = transport.read();
             return State.valueOf(result.toUpperCase());
-        } catch (CommandException e) {
-            throw new DeviceException(e);
         }
     }
 
     @Override
-    public ShellResponse shell(String command, String... args) throws IOException, DeviceException, CommandException {
+    public ShellResponse shell(String command, String... args) throws IOException, AdbException {
         Transport transport = getTransport();
         StringBuilder shellLine = buildCmdLine(command, args);
         transport.send("shell:" + shellLine.toString());
@@ -95,8 +95,7 @@ public abstract class AbstractDevice implements Device {
     }
 
     @Override
-    public void push(InputStream local, String remote, long lastModified, int mode)
-        throws IOException, DeviceException, CommandException {
+    public void push(InputStream local, String remote, long lastModified, int mode) throws IOException, AdbException {
         try (Transport transport = getTransport()) {
             transport.send("sync:");
             DataOutputStream out = new DataOutputStream(transport.getOutputStream());
@@ -120,14 +119,14 @@ public abstract class AbstractDevice implements Device {
     }
 
     @Override
-    public void push(File local, String remote) throws CommandException, DeviceException, IOException {
+    public void push(File local, String remote) throws IOException, AdbException {
         try (InputStream inputStream = new FileInputStream(local)) {
             push(inputStream, remote, local.lastModified(), 644);
         }
     }
 
     @Override
-    public void pull(String remote, OutputStream local) throws IOException, DeviceException, CommandException {
+    public void pull(String remote, OutputStream local) throws IOException, AdbException {
         try (Transport transport = getTransport()) {
             transport.send("sync:");
             DataOutputStream out = new DataOutputStream(transport.getOutputStream());
@@ -142,7 +141,7 @@ public abstract class AbstractDevice implements Device {
                 String result = transport.read(4);
                 len = Integer.reverseBytes(in.readInt());
                 if ("FAIL".equals(result)) {
-                    throw new CommandException(transport.read(len));
+                    throw new AdbException(transport.read(len));
                 }
                 if (!"DATA".equals(result)) {
                     break;
@@ -154,7 +153,7 @@ public abstract class AbstractDevice implements Device {
     }
 
     @Override
-    public void pull(String remote, File local) throws IOException, DeviceException, CommandException {
+    public void pull(String remote, File local) throws IOException, AdbException {
         try (FileOutputStream outputStream = new FileOutputStream(local)) {
             pull(remote, outputStream);
         }
@@ -165,7 +164,7 @@ public abstract class AbstractDevice implements Device {
         String serial = "unknown";
         try {
             serial = getSerialNo();
-        } catch (IOException | DeviceException ignore) {
+        } catch (IOException | AdbException ignore) {
         }
         return "The device's serial number is " + serial;
     }

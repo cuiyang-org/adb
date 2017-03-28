@@ -1,7 +1,5 @@
 package org.cuiyang.adb;
 
-import org.cuiyang.adb.exception.CommandException;
-
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -25,9 +23,9 @@ public class Transport extends Socket {
      * 向adb server发送命令
      * @param command adb 命令
      * @throws IOException 和adb server连接异常
-     * @throws CommandException adb命令执行失败
+     * @throws AdbException adb命令执行失败
      */
-    public void send(String command) throws IOException, CommandException {
+    public void send(String command) throws IOException, AdbException {
         OutputStreamWriter writer = new OutputStreamWriter(getOutputStream());
         writer.write(getHexLength(command));
         writer.write(command);
@@ -46,13 +44,13 @@ public class Transport extends Socket {
     /**
      * 验证adb server响应结果
      * @throws IOException 和adb server连接异常
-     * @throws CommandException 连接adb server失败
+     * @throws AdbException adb响应为失败
      */
-    public void verifyResponse() throws IOException, CommandException {
+    public void verifyResponse() throws IOException, AdbException {
         String response = read(4);
         if (!"OKAY".equals(response)) {
             String error = read();
-            throw new CommandException(error);
+            throw new AdbException(error);
         }
     }
 
