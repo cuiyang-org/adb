@@ -3,7 +3,14 @@ package org.cuiyang.adb;
 import org.cuiyang.adb.exception.CommandException;
 import org.cuiyang.adb.exception.DeviceException;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * Device 基类.
@@ -88,6 +95,72 @@ public abstract class AbstractDevice implements Device {
     }
 
     @Override
+    public void push(InputStream local, String remote, long lastModified, int mode)
+        throws IOException, DeviceException, CommandException {
+        try (Transport transport = getTransport()) {
+            transport.send("sync:");
+            DataOutputStream out = new DataOutputStream(transport.getOutputStream());
+            out.writeBytes("SEND");
+            StringBuilder arg = new StringBuilder(remote).append(",").append(Integer.toString(mode));
+            out.writeInt(Integer.reverseBytes(arg.length()));
+            out.writeBytes(arg.toString());
+
+            int len;
+            byte[] buffer = new byte[1024];
+            while ((len = local.read(buffer)) != -1) {
+                out.writeBytes("DATA");
+                out.writeInt(Integer.reverseBytes(len));
+                out.write(buffer, 0, len);
+            }
+
+            out.writeBytes("DONE");
+            out.writeLong(Long.reverseBytes(lastModified));
+            transport.verifyResponse();
+        }
+    }
+
+    @Override
+    public void push(File local, String remote) throws CommandException, DeviceException, IOException {
+        try (InputStream inputStream = new FileInputStream(local)) {
+            push(inputStream, remote, local.lastModified(), 644);
+        }
+    }
+
+    @Override
+    public void pull(String remote, OutputStream local) throws IOException, DeviceException, CommandException {
+        try (Transport transport = getTransport()) {
+            transport.send("sync:");
+            DataOutputStream out = new DataOutputStream(transport.getOutputStream());
+            out.writeBytes("RECV");
+            out.writeInt(Integer.reverseBytes(remote.length()));
+            out.writeBytes(remote);
+
+            DataInputStream in = new DataInputStream(transport.getInputStream());
+            int len = 0;
+            byte[] buffer = new byte[1024];
+            while (len != -1) {
+                String result = transport.read(4);
+                len = Integer.reverseBytes(in.readInt());
+                if ("FAIL".equals(result)) {
+                    throw new CommandException(transport.read(len));
+                }
+                if (!"DATA".equals(result)) {
+                    break;
+                }
+                in.readFully(buffer, 0, len);
+                local.write(buffer, 0, len);
+            }
+        }
+    }
+
+    @Override
+    public void pull(String remote, File local) throws IOException, DeviceException, CommandException {
+        try (FileOutputStream outputStream = new FileOutputStream(local)) {
+            pull(remote, outputStream);
+        }
+    }
+
+    @Override
     public String toString() {
         String serial = "unknown";
         try {
@@ -96,4 +169,5 @@ public abstract class AbstractDevice implements Device {
         }
         return "The device's serial number is " + serial;
     }
+
 }

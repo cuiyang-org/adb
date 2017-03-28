@@ -3,7 +3,10 @@ package org.cuiyang.adb;
 import org.cuiyang.adb.exception.CommandException;
 import org.cuiyang.adb.exception.DeviceException;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * 设备.
@@ -82,5 +85,47 @@ public interface Device {
      * @throws CommandException 命令异常
      */
     ShellResponse shell(String command, String... args) throws IOException, DeviceException, CommandException;
+
+    /**
+     * 推送文件到设备
+     * @param local 本地文件输入流
+     * @param remote 远程路径
+     * @param lastModified 修改时间
+     * @param mode 文件模式
+     * @throws IOException 和adb server连接异常
+     * @throws DeviceException 设备异常
+     * @throws CommandException 命令异常
+     */
+    void push(InputStream local, String remote, long lastModified, int mode) throws IOException, DeviceException, CommandException;
+
+    /**
+     * 推送文件到设备
+     * @param local 本地文件
+     * @param remote 远程路径
+     * @throws IOException 和adb server连接异常
+     * @throws DeviceException 设备异常
+     * @throws CommandException 命令异常
+     */
+    void push(File local, String remote) throws CommandException, DeviceException, IOException;
+
+    /**
+     * 从设备拉取文件到本地
+     * @param remote 远程文件路径
+     * @param local 本地文件输出流
+     * @throws IOException 和adb server连接异常
+     * @throws DeviceException 设备异常
+     * @throws CommandException 命令异常
+     */
+    void pull(String remote, OutputStream local) throws IOException, DeviceException, CommandException;
+
+    /**
+     * 从设备拉取文件到本地
+     * @param remote 远程文件路径
+     * @param local 本地文件
+     * @throws IOException 和adb server连接异常
+     * @throws DeviceException 设备异常
+     * @throws CommandException 命令异常
+     */
+    void pull(String remote, File local) throws IOException, DeviceException, CommandException;
 
 }

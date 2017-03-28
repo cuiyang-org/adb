@@ -48,7 +48,7 @@ public class Transport extends Socket {
      * @throws IOException 和adb server连接异常
      * @throws CommandException 连接adb server失败
      */
-    private void verifyResponse() throws IOException, CommandException {
+    public void verifyResponse() throws IOException, CommandException {
         String response = read(4);
         if (!"OKAY".equals(response)) {
             String error = read();
